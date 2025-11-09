@@ -2,7 +2,7 @@
 ## Duomenų paruošimas
 Duomenys imami iš geoportalo puslapio su maksimaliu priartinimu. Imama tiek ortho, tiek poligonų nuotrauka.
 
-Norint sukurti modifikuotus duomenis stogu tolimesniam apdorojimui config faile reikia nurodyti: **data_creation=1**
+Norint sukurti modifikuotus duomenis stogu tolimesniam apdorojimui config faile reikia nurodyti: **data_creation=1** /n
 Tada paleidus programą bus atidaroma nuotrauka iš geoportalo. Joje reikia užeiti ant norimo namo ir suvesti jo koordinates į terminalą.
 Sukuriama modifikuota ortoho nuotrauka ir mask.
 
