@@ -38,32 +38,109 @@ def finding_closest_contour(mask):
     return new_mask, closest_contour
 
 
-def get_polygon_corners_from_contour(contour, angle_threshold, simplify_epsilon):
-        if simplify_epsilon > 0:
-            contour = cv2.approxPolyDP(contour, simplify_epsilon, True)
+# def get_polygon_corners_from_contour(contour, angle_threshold, simplify_epsilon):
+#         if simplify_epsilon > 0:
+#             contour = cv2.approxPolyDP(contour, simplify_epsilon, True)
 
-        contour = contour[:, 0, :]
-        corners = []
-        for i in range(len(contour)):
+#         contour = contour[:, 0, :]
+#         corners = []
+#         for i in range(len(contour)):
             
-            # Three points for to determine 2 vectors
-            p_prev = contour[i - 1]
-            p_curr = contour[i]
-            p_next = contour[(i + 1) % len(contour)]
+#             # Three points for to determine 2 vectors
+#             p_prev = contour[i - 1]
+#             p_curr = contour[i]
+#             p_next = contour[(i + 1) % len(contour)]
 
-            # Computing vectors from current points and normalizing them
-            unit_v1,_=unit_vector_and_length(p_curr, p_prev)
-            unit_v2,_=unit_vector_and_length(p_curr, p_next)
+#             # Computing vectors from current points and normalizing them
+#             unit_v1,_=unit_vector_and_length(p_curr, p_prev)
+#             unit_v2,_=unit_vector_and_length(p_curr, p_next)
 
-            #calculating the angle between vectors (cos*|v1|x|v2|)
-            angle = np.degrees(np.arccos(np.clip(np.dot(unit_v1, unit_v2), -1.0, 1.0)))
+#             #calculating the angle between vectors (cos*|v1|x|v2|)
+#             angle = np.degrees(np.arccos(np.clip(np.dot(unit_v1, unit_v2), -1.0, 1.0)))
 
-            if angle < angle_threshold:
-                corners.append(p_curr)
-        return np.array(corners, dtype=np.int32)
+#             if angle < angle_threshold:
+#                 corners.append(p_curr)
+#         return np.array(corners, dtype=np.int32)
+
+import numpy as np
+import cv2
+
+def unit_vector_and_length(p1, p2):
+    v = p2 - p1
+    length = np.linalg.norm(v)
+    if length == 0:
+        return v, 0
+    return v / length, length
 
 
-def scale_contour(contour, scale_factor, mask, angle_threshold=140, simplify_epsilon=1, merge_distance=6): #140 
+def merge_collinear_edges(contour, direction_threshold_deg=10):
+    """
+    Merge consecutive edges whose direction is similar.
+    Returns a simplified contour.
+    """
+    pts = contour.reshape(-1, 2)
+    merged_pts = [pts[0]]
+
+    prev_vec = None
+    
+    for i in range(1, len(pts)+1):
+        p_prev = merged_pts[-1]
+        p_curr = pts[i % len(pts)]
+        
+        vec, _ = unit_vector_and_length(p_prev, p_curr)
+        
+        if prev_vec is None:
+            prev_vec = vec
+            merged_pts.append(p_curr)
+            continue
+
+        # angle between current edge and previous
+        angle = np.degrees(np.arccos(np.clip(np.dot(prev_vec, vec), -1, 1)))
+
+        if angle < direction_threshold_deg:
+            # instead of creating a new point, overwrite the last one
+            # → merges jagged micro-edges
+            merged_pts[-1] = p_curr
+        else:
+            merged_pts.append(p_curr)
+            prev_vec = vec
+
+    return np.array(merged_pts, dtype=np.int32).reshape(-1, 1, 2)
+
+
+def get_polygon_corners_from_contour(contour, angle_threshold=150, simplify_epsilon=3,
+                                     collinear_merge_angle=50):
+
+    # 1) Optional RDP simplification
+    if simplify_epsilon > 0:
+        contour = cv2.approxPolyDP(contour, simplify_epsilon, True)
+
+    # 2) Merge nearly-collinear edges
+    contour = merge_collinear_edges(contour, collinear_merge_angle)
+
+    pts = contour[:, 0, :]
+    corners = []
+
+    for i in range(len(pts)):
+        p_prev = pts[i - 1]
+        p_curr = pts[i]
+        p_next = pts[(i + 1) % len(pts)]
+
+        # 3) Compute normalized vectors
+        v1, _ = unit_vector_and_length(p_curr, p_prev)
+        v2, _ = unit_vector_and_length(p_curr, p_next)
+
+        angle = np.degrees(np.arccos(np.clip(np.dot(v1, v2), -1.0, 1.0)))
+
+        # small angle = sharp corner
+        if angle < angle_threshold:
+            corners.append(p_curr)
+
+    return np.array(corners, dtype=np.int32)
+
+
+
+def scale_contour(contour, scale_factor, mask, angle_threshold=150, simplify_epsilon=1, merge_distance=6): #140 
     # Compute contour center
     centroid=calculate_centroid(contour)
 

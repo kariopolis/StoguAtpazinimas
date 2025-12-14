@@ -20,3 +20,12 @@ margin = 0.1
 #Scale factor
 scale_factor=1.2
 
+#Angle threshold for house corners detection
+angle_threshold=150#
+
+#Flag for modified data segmentation to roof only img. Value should be 1 if function required
+segment_roof=0
+
+#Flag for modified data obstacles extraction from roof only img. Value should be 1 if function required
+extract_obstacles=1
+

@@ -3,7 +3,7 @@ import cv2
 
 from config import main_data_path as main
 
-def get_path(path, basename):
+def get_path(path, basename=None):
         file_path=[]
         for root,dirs,files in os.walk(path):
             #print (os.path.basename(root))
@@ -12,6 +12,10 @@ def get_path(path, basename):
                 for file in files:
                     if ".png" in file:
                          file_path.append(os.path.join(root, file))
+            if basename == None:
+                for file in files:
+                    if ".png" in file:
+                         file_path.append(os.path.join(root, file))        
         return file_path
 
 def get_img(path):
@@ -45,6 +49,14 @@ def get_existing_mask(mask_id):
 def get_existing_img(img_id):
     try:
         img_path = get_path(os.path.join(main, r"Modified"),"Ortho")[img_id]
+        return get_img(img_path)
+    except (ValueError, IndexError, FileNotFoundError) as e:
+        print(f"Image ID {img_id} is not valid or out of range: {e}")
+        return None
+    
+def get_roof_only_img(img_id):
+    try: 
+        img_path = get_path(os.path.join(main, r"OnlyRoof"))[img_id]
         return get_img(img_path)
     except (ValueError, IndexError, FileNotFoundError) as e:
         print(f"Image ID {img_id} is not valid or out of range: {e}")

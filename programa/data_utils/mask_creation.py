@@ -21,6 +21,8 @@ def create_mask(data_img_id=0):
     mask = get_mask(mask_path)
     img = get_img(ortho_path)
 
+    print(mask.shape, img.dtype)
+
     #Getting area of interest
     see_img(img, mask=False)
     print ('Input the center coordinates of the house')
