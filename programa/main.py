@@ -1,6 +1,6 @@
 from data_utils import get_roof_only_img, create_mask, get_existing_mask, see_img, get_existing_img, visualize_points, crop_image_according_to_mask, save_roof_img, save_wall_measurements
 from processing import finding_closest_contour, generate_points_inside_contour, scale_contour, sam_predictor, mask_adjustment, roof_elements_detection
-from processing.proc_utils import calculate_wall_measurements
+from processing.proc_utils import calculate_wall_measurements, calculate_roof_area
 
 from config import data_creation, scale_factor, segment_roof, extract_obstacles
 
@@ -45,8 +45,9 @@ if segment_roof==1:
     save_roof_img(cropped_roof_image, mask_id)
 
     walls=calculate_wall_measurements(adjusted_contour)
+    area=calculate_roof_area(adjusted_contour)
 
-    save_wall_measurements(walls, mask_id)
+    save_wall_measurements(walls, area, mask_id)
 
 roof_elements_detection(roof_image)
 

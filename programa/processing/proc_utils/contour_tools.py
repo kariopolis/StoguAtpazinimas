@@ -192,3 +192,21 @@ def calculate_wall_measurements(polygon):
         else:
             walls.append((np.sqrt((polygon[0][0]-polygon[-1][0])**2+(polygon[0][1]-polygon[-1][1])**2))*pixel_size)
     return walls 
+
+def calculate_roof_area(contour):
+
+    contour = np.asarray(contour, dtype=np.float64)
+
+    x = contour[:, 0]
+    y = contour[:, 1]
+
+    #Shoelace formula
+    area_pixels = 0.5 * abs(
+        np.dot(x, np.roll(y, -1)) -
+        np.dot(y, np.roll(x, -1))
+    )
+
+    #Convert pixels → real units
+    area_real = area_pixels * (pixel_size ** 2)
+
+    return area_real
