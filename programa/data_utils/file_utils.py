@@ -68,9 +68,10 @@ def save_roof_img(image, id, basename="Ortho"):
     print("Roof image: roof_"+str(os.path.basename(path))+"\n")
     save_img(image, saving_path, "roof_"+str(os.path.basename(path)))
 
-def save_wall_measurements(walls, id, basename="Ortho"):
+def save_wall_measurements(walls, area, id, basename="Ortho"):
     path = get_path(os.path.join(main, r"Modified"), basename)[id]
     file_path=main+"/OnlyRoof/roof_"+str(os.path.basename(path))
     file_path = file_path.replace('png', 'txt')
     with open(file_path, "w") as f:
         [f.write(str(elem)+"\n") for elem in walls]
+        [f.write(str(area)+"\n")]
